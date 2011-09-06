@@ -37,6 +37,19 @@ stream = Stream.new("config.yml", $users) do |o|
         next unless $users.include? o.in_reply_to_user_id
     end
 
+    # special case for retweets so that if the o.text's longer than 140
+    # characters, we get the entire RT rather than it getting cut off.
+    unless o.retweeted_status.nil?
+        rt = o.retweeted_status
+        $client.instance_eval do
+            str =  "@#{o.user.screen_name}: RT @#{rt.user.screen_name}: "
+            str += rt.text.gsub(/\s+/, ' ')
+            privmsg "#malkier", str
+            write
+        end
+        next
+    end
+
     # we're still here, go ahead and send it.
     $client.instance_eval do
         privmsg "#malkier", "@#{o.user.screen_name}: #{o.text.gsub(/\s+/, ' ')}"
