@@ -5,10 +5,8 @@ require 'logger'
 require 'base64'
 require 'json'
 require 'yaml'
-require 'json'
 
 require 'hashie'
-require 'simple_oauth'
 
 class Stream
     attr_reader :socket
