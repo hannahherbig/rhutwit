@@ -1,0 +1,7 @@
+username: twitter username here
+password: twitter password here
+# these aren't used yet - XXX
+consumer_key:    consumer key here
+consumer_secret: consumer secret here
+token:           access token here
+token_secret:    access token secret here
