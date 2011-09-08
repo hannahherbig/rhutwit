@@ -5,8 +5,13 @@ require 'rhuidean'
 require 'stream'
 
 $client = IRC::Client.new do |c|
-    c.server   = "irc.andrew12.net"
+    c.server   = "127.0.0.1"
     c.port     = 6667
+
+    # I can put the password here because you have to be on my vps to be able to
+    # connect like this, and it doesn't give you anything awesome besides a
+    # spoof anyways.
+    c.password = 'twitter'
 
     c.nickname = c.username = c.realname = "twitter"
 
