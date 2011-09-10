@@ -27,6 +27,7 @@ $users = [
     1361291,   # jufineath
     15278232,  # rintaun
     58240144,  # netz
+    25096541,  # coreag (naki)
 ]
 
 $client.on(IRC::Numeric::RPL_ENDOFMOTD) { $client.join("#malkier") }

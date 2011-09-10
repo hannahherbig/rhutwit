@@ -71,20 +71,27 @@ class Stream
 
     def io_loop
         loop do
-            unless connected?
+            begin
+                unless connected?
+                    connect
+
+                    @connected = true
+                end
+
+                writefd = [@socket] unless @sendq.empty?
+
+                ret = IO.select([@socket], writefd)
+
+                next unless ret
+
+                read  unless ret[0].empty?
+                write unless ret[1].empty?
+            rescue Exception => e
+                log.error("#{e}")
+                e.backtrace.each { |m| log.error(m) }
+                puts 'reconnecting'
                 connect
-
-                @connected = true
             end
-
-            writefd = [@socket] unless @sendq.empty?
-
-            ret = IO.select([@socket], writefd)
-
-            next unless ret
-
-            read  unless ret[0].empty?
-            write unless ret[1].empty?
         end
     end
 
