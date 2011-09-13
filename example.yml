@@ -1,7 +1,13 @@
-username: twitter username here
-password: twitter password here
-# these aren't used yet - XXX
-consumer_key:    consumer key here
-consumer_secret: consumer secret here
-token:           access token here
-token_secret:    access token secret here
+irc:
+  server: irc.malkier.net
+  port: 6667
+  nickname: twitter
+  username: twitter
+  realname: twitter
+  channel: "#bottestlab"
+twitter:
+  users: [12, 13, 15, 16, 20, 87]
+  username: username
+  password: password
+  consumer_key:    consumer key
+  consumer_secret: consumer secret

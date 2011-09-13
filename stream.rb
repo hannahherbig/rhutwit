@@ -1,32 +1,36 @@
 # a lot of this code was shamelessly stolen from rhuidean
 
-require 'socket'
+require 'net/http'
+require 'uri'
 require 'logger'
 require 'base64'
 require 'json'
 require 'yaml'
+require 'openssl'
 
 require 'hashie'
 
 class Stream
     attr_reader :socket
 
-    def initialize(config, users, &block)
+    def initialize(config, &block)
+        if config.kind_of? String
+            config = Hashie::Mash.new(YAML.load_file(config))
+        elsif config.kind_of? Hash
+            config = Hashie::Mash.new(config)
+        end
+
         @logger    = Logger.new($stderr)
         log.level  = Logger::DEBUG
 
         @sendq     = []
+        @recvq     = []
 
-        @config    = Hashie::Mash.new(YAML.load_file(config))
-
-        @users     = users
+        @config    = config
 
         @block     = block
 
-        @headed    = true # whether or not we're receiving http headers
         @connected = false
-
-        @auth      = Base64.encode64("#{@config.username}:#{@config.password}").chomp
     end
 
     def connected?
@@ -37,84 +41,47 @@ class Stream
         @logger
     end
 
-    def read
-        line = readline.chomp
+    def parse
+        while line = @recvq.shift
+            line.chomp!
 
-        if @headed
-            if line.empty?
-                @headed = false
+            log.debug("<- #{line.chomp}")
+
+            if line[0] == "{" && line[-1] == "}"
+                @block.call(Hashie::Mash.new(JSON(line)))
             end
-        elsif line[0] == "{"
-            @block.call(Hashie::Mash.new(JSON(line)))
-        end
-
-        self
-    end
-
-    def readline
-        line = ''
-        line << @socket.recv(1) until line[-1] == "\n"
-
-        log.debug("<- #{line.chomp}")
-
-        line
-    end
-
-    def write
-        # Use shift because we need it to fall off immediately.
-        while line = @sendq.shift
-            log.debug("-> #{line}")
-            line += "\r\n"
-            @socket.write(line)
         end
     end
 
     def io_loop
-        loop do
-            begin
-                unless connected?
-                    connect
+        uri = URI.parse("https://stream.twitter.com/1/statuses/filter.json")
+        post_body = "follow=#{@config.users.join(',')}"
 
-                    @connected = true
+        http = Net::HTTP.new uri.host, uri.port
+        http.use_ssl = true
+
+        http.start do |http|
+            req = Net::HTTP::Post.new(uri.path)
+            req.basic_auth @config.username, @config.password
+            http.request(req, post_body) do |res|
+                res.read_body do |seg|
+                    # This passes every "line" to our block, including the "\n".
+                    seg.scan(/(.+\n?)/) do |line|
+                        line = line[0]
+
+                        # If the last line had no \n, add this one onto it.
+                        if @recvq[-1] and @recvq[-1][-1].chr != "\n"
+                            @recvq[-1] += line
+                        else
+                            @recvq << line
+                        end
+                    end
+
+                    if @recvq[-1] and @recvq[-1][-1].chr == "\n"
+                        parse
+                    end
                 end
-
-                writefd = [@socket] unless @sendq.empty?
-
-                ret = IO.select([@socket], writefd)
-
-                next unless ret
-
-                read  unless ret[0].empty?
-                write unless ret[1].empty?
-            rescue Exception => e
-                log.error("#{e}")
-                e.backtrace.each { |m| log.error(m) }
-                puts 'reconnecting'
-                connect
             end
         end
-    end
-
-    def raw(line = "")
-        @sendq << line
-    end
-
-    def connect
-        url = "http://stream.twitter.com/1/statuses/filter.json"
-        @socket = TCPSocket.new("stream.twitter.com", 80)
-
-        post_content = "delimited=length&follow=#{@users.join(',')}"
-        #auth = SimpleOAuth::Header.new(:POST, url, @oauth)
-
-        raw "POST /1/statuses/filter.json HTTP/1.1"
-        raw "Host: stream.twitter.com"
-        raw "Authorization: Basic #{@auth}"
-        raw "Content-Type: application/x-www-form-urlencoded"
-        raw "Content-Length: #{post_content.length}"
-        raw
-        raw post_content
-        raw
-
-        self
     end
 end
