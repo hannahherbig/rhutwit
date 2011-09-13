@@ -1,5 +1,3 @@
-# a lot of this code was shamelessly stolen from rhuidean
-
 require 'net/http'
 require 'uri'
 require 'logger'
