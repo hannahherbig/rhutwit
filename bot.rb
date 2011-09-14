@@ -1,12 +1,16 @@
+VERSION = "0.1"
+
 $: << '.'
 
 require 'logger'
 require 'yaml'
+require 'abbrev'
 
 require 'rhuidean'
 require 'hashie'
 
 require 'stream'
+require 'log'
 
 # There's only one config file now, config.yml. Rename example.yml to config.yml
 # and then configure your bot.
@@ -20,7 +24,7 @@ client = IRC::Client.new do |c|
     c.username = config.irc.username
     c.realname = config.irc.realname
 
-    c.logger       = Logger.new($stdout)
+    c.logger       = logger
     c.log_level    = :debug
 end
 
