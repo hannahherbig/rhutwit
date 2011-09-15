@@ -80,7 +80,7 @@ class Stream
         loop do
             begin
                 start
-            rescue Exception => e
+            rescue => e
                 log.error("#{e.class.name}: #{e.message}")
 
                 e.backtrace.each do |line|
