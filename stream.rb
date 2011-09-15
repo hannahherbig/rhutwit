@@ -45,7 +45,7 @@ class Stream
     end
 
     def start
-        uri = URI.parse()
+        uri = URI.parse("https://stream.twitter.com/1/statuses/filter.json")
         post_body = "follow=#{@config.users.join(',')}"
 
         http = Net::HTTP.new uri.host, uri.port
