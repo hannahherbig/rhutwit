@@ -86,9 +86,9 @@ class Stream
                 e.backtrace.each do |line|
                     log.error("\t#{line}")
                 end
-            else
-                log.error "died for an unknown reason"
             end
+
+            sleep 60
         end
     end
 end
