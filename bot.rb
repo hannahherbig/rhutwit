@@ -12,6 +12,43 @@ require 'hashie'
 require 'stream'
 require 'log'
 
+module NotCGI
+  TABLE = {
+    '&' => '&amp;', # first so the rest aren't escaped
+    '"' => '&quot;',
+    "'" => '&apos;',
+    '<' => '&lt;',
+    '>' => '&gt;'
+  }
+
+  def escape(string)
+    string = string.dup
+
+    TABLE.each do |k, v|
+      string.gsub!(k, v)
+    end
+
+    string
+  end
+
+  def unescape(string)
+    string = string.dup
+
+    TABLE.each do |k, v|
+      string.gsub!(v, k)
+    end
+
+    string
+  end
+
+  extend self
+end
+
+def decode_text(str)
+  str.gsub!(/\s+/, ' ') # compress the whitespaces
+  NotCGI.unescape(str)
+end
+
 # There's only one config file now, config.yml. Rename example.yml to config.yml
 # and then configure your bot.
 config = Hashie::Mash.new(YAML.load_file('config.yml'))
@@ -45,7 +82,7 @@ stream = Stream.new(config.twitter) do |o|
         rt = o.retweeted_status
         client.instance_eval do
             str =  "@#{o.user.screen_name}: RT @#{rt.user.screen_name}: "
-            str += rt.text.gsub(/\s+/, ' ')
+            str += decode_text(rt.text)
             privmsg config.irc.channel, str
             write
         end
@@ -54,7 +91,8 @@ stream = Stream.new(config.twitter) do |o|
 
     # we're still here, go ahead and send it.
     client.instance_eval do
-        privmsg config.irc.channel, "@#{o.user.screen_name}: #{o.text.gsub(/\s+/, ' ')}"
+        str = "@#{o.user.screen_name}: #{decode_text(o.text)}"
+        privmsg config.irc.channel, str
         write
     end
 end
