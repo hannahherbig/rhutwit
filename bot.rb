@@ -22,23 +22,23 @@ module NotCGI
   }
 
   def escape(string)
-  string = string.dup
+    string = string.dup
 
-  TABLE.each do |k, v|
-    string.gsub!(k, v)
-  end
+    TABLE.each do |k, v|
+      string.gsub!(k, v)
+    end
 
-  string
+    string
   end
 
   def unescape(string)
-  string = string.dup
+    string = string.dup
 
-  TABLE.each do |k, v|
-    string.gsub!(v, k)
-  end
+    TABLE.each do |k, v|
+      string.gsub!(v, k)
+    end
 
-  string
+    string
   end
 
   extend self
