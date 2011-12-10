@@ -7,7 +7,7 @@ irc:
   channel: "#bottestlab"
 twitter:
   users: [12, 13, 15, 16, 20, 87]
-  username: username
-  password: password
-  consumer_key:    consumer key
-  consumer_secret: consumer secret
+  consumer_key:       fill this in
+  consumer_secret:    fill this in
+  oauth_token:        fill this in
+  oauth_token_secret: fill this in
