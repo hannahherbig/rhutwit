@@ -62,9 +62,10 @@ stream.follow(*config.twitter.users) do |o|
   next if o.entities.hashtags.map(&:text).map(&:downcase).include?("noirc")
   next unless o.user && o.text
   next unless config.twitter.users.include? o.user.id
-  unless o.in_reply_to_user_id.nil?
-    next unless config.twitter.users.include? o.in_reply_to_user_id
-  end
+
+  # We don't count a tweet as an @reply unless it's at the beginning of the string.
+  mention = o.entities.user_mentions.first
+  next if mention.indices[0] == 0 and not config.twitter.users.include? mention.id
 
   # special case for retweets
   unless o.retweeted_status.nil?
