@@ -9,12 +9,12 @@ require 'tweetstream'
 
 def decode_text(str)
   {
-    /\s+/ => ' ',
-    '&' => '&amp;',
-    '"' => '&quot;',
-    "'" => '&apos;',
-    '<' => '&lt;',
-    '>' => '&gt;'
+    /\s+/    => ' ',
+    '&amp;'  => '&',
+    '&quot;' => '"',
+    '&apos;' => "'",
+    '&lt;'   => '<',
+    '&gt;'   => '>'
   }.each { |k, v| str.gsub!(k, v) }
 
   str
